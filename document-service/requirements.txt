@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+aiofiles
+httpx
+PyPDF2>=3.0.0 

@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  document-service:
+    build: ./document-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - uploaded_docs:/app/uploaded_docs
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rag-service:
+    build: ./rag-service
+    ports:
+      - "8002:8002"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TOKENIZERS_PARALLELISM=false
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  query-service:
+    build: ./query-service
+    ports:
+      - "8005:8005"
+    depends_on:
+      rag-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8005/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build: ./frontend-service
+    ports:
+      - "8501:8501"
+    depends_on:
+      document-service:
+        condition: service_healthy
+      query-service:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  uploaded_docs:
