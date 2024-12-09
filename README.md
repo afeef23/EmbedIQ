@@ -1,0 +1,1 @@
+EmbedIQ utilizes semantic embeddings and retrieval-augmented generation (RAG) models to bridge the gap between unstructured PDF content and precise, contextually relevant answers. The system scales dynamically using vector search and AI-powered query generation.
